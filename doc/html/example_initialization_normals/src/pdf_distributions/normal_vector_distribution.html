@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of normal_vector_distribution</title>
+  <meta name="keywords" content="normal_vector_distribution">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">pdf_distributions</a> &gt; normal_vector_distribution.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/pdf_distributions&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>normal_vector_distribution
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function normal_vector_distribution(N,param) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: visualization of the normal directions (in the sphere)
+  Input:  - N (vector 3 x n): normal vactors to plot
+         
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: visualization of the normal directions (in the sphere)</span>
+0006 <span class="comment">%  Input:  - N (vector 3 x n): normal vactors to plot</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">%%</span>
+0009 
+0010 <a name="_sub0" href="#_subfunctions" class="code">function normal_vector_distribution(N,param)</a>
+0011 <span class="keyword">global</span> indexImage
+0012 <span class="keyword">global</span> namef
+0013 
+0014 pos = sum(N.^2,1) &gt; 0;
+0015 
+0016 figure, scatter3(N(1,pos), N(2,pos), N(3,pos), <span class="string">'.'</span>);
+0017 axis square; 
+0018 xlabel(<span class="string">'X'</span>, <span class="string">'FontSize'</span>, 20);
+0019 ylabel(<span class="string">'Y'</span>, <span class="string">'FontSize'</span>, 20);
+0020 zlabel(<span class="string">'Z'</span>, <span class="string">'FontSize'</span>, 20);
+0021 
+0022 x0 = zeros(3,1);
+0023 hold on, plot3(x0(1)+[0, 1, nan, 0, 0, nan, 0, 0],x0(2)+[0, 0, nan, 0, 1, nan, 0, 0], x0(3)+[0, 0, nan, 0, 0, nan, 0, 1],<span class="string">'k'</span>,<span class="string">'Linewidth'</span>,5);
+0024 text([x0(1)+1, x0(1), x0(1)], [x0(2), x0(2)+1, x0(2)], [x0(3), x0(3), x0(3)+1], [<span class="string">'+X'</span>;<span class="string">'+Y'</span>;<span class="string">'+Z'</span>],<span class="string">'Color'</span>,<span class="string">'r'</span>);
+0025 
+0026 <span class="comment">%</span>
+0027 <span class="comment">% %% inverse near the poles (X,Z near to zero) -- arbitrary theta. Fix for phi</span>
+0028 [theta, phi, r] = cart2sph(N(1,pos),N(2,pos),N(3,pos));
+0029 
+0030 n = param(1);
+0031 <span class="comment">%C = hist3([ymap' xmap'],[n n]);</span>
+0032 C = hist3([phi' theta'],{-pi/2:pi/n:pi/2 -pi:pi/n:pi});
+0033 number = size(N(:,pos),2)/n;
+0034 
+0035 C(C&gt;number) = number;
+0036 
+0037 Ddisp = (C-min(C(:)))/(max(C(:))-min(C(:)))*255+1;
+0038 lut = lines(255);
+0039 Ddisp_color = zeros([size(Ddisp),3]);
+0040 <span class="keyword">for</span> k = 1 : 3
+0041     Ddisp_color(:,:,k) = reshape(lut(uint8(Ddisp),k),size(Ddisp));
+0042 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

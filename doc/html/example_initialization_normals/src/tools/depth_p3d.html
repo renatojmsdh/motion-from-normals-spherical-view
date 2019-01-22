@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of depth_p3d</title>
+  <meta name="keywords" content="depth_p3d">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">tools</a> &gt; depth_p3d.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/tools&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>depth_p3d
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function P3D = depth_p3d(D,unit,T,pos_warp) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Author: Renato Martins 2017
+  Email:  renatojmsdh@gmail.com
+
+  Use: creates point cloud from depth image and unit vector.
+  Inputs: - depth image
+          - unit vector
+          - optional arguments: T and pos_warp
+          
+  Output: 
+          - the 3D point cloud
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/init_rotation_normals.html" class="code" title="function  [angle, validPixels, per_inliers, N_ref, N_cur] = init_rotation_normals(D_ref,D_cur,US,mask_reference,mask_saliency,T_initial,sensor_param)">init_rotation_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../../example_initialization_normals/src/init_translation.html" class="code" title="function T = init_translation(D_ref,D_cur,sensor_config,mask_valid_pixels,T_initial,sensor_param)">init_translation</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Author: Renato Martins 2017</span>
+0003 <span class="comment">%  Email:  renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: creates point cloud from depth image and unit vector.</span>
+0006 <span class="comment">%  Inputs: - depth image</span>
+0007 <span class="comment">%          - unit vector</span>
+0008 <span class="comment">%          - optional arguments: T and pos_warp</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%  Output:</span>
+0011 <span class="comment">%          - the 3D point cloud</span>
+0012 <span class="comment">%%</span>
+0013 
+0014 
+0015 <a name="_sub0" href="#_subfunctions" class="code">function P3D = depth_p3d(D,unit,T,pos_warp)</a>
+0016 
+0017 <span class="keyword">if</span>(nargin == 2)
+0018     T = eye(4);
+0019     pos_warp = 1:numel(D);
+0020 <span class="keyword">elseif</span>(nargin == 3)
+0021     pos_warp = 1:numel(D);
+0022 <span class="keyword">end</span>
+0023 
+0024 [h,w] = size(D);
+0025 P3D_ref = [reshape(unit(:,:,1).*D,1,h*w); reshape(unit(:,:,2).*D,1,h*w); reshape(unit(:,:,3).*D,1,h*w)];
+0026 
+0027 P3D = nan(3,h*w);
+0028 <span class="comment">% rigid transform in 3D</span>
+0029 P3D(:,pos_warp) = T(1:3,:)*[P3D_ref(:,pos_warp); ones(1,length(pos_warp))];</pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

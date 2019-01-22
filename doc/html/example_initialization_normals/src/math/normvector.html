@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of normvector</title>
+  <meta name="keywords" content="normvector">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">math</a> &gt; normvector.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/math&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>normvector
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function normv = normvector(x,d) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: compute norm 2 of vector/matrix along dimension d
+  Inputs: - (vector) x
+          - (int) d = 1 (by column), d = 2 (by row)
+  Output: norm 2 of the vector matrix
+
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/compute_translation.html" class="code" title="function t = compute_translation(D_reff,N_reff,D_curf,N_curf,sensor_config,pos_warp)">compute_translation</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../../example_initialization_normals/src/tools/normals_centered.html" class="code" title="function N = normals_centered(D,US,h,w)">normals_centered</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../../example_initialization_normals/src/tools/p3D_pixel.html" class="code" title="function [pixel_map,D] = p3D_pixel(P3D,sensor_config)">p3D_pixel</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: compute norm 2 of vector/matrix along dimension d</span>
+0006 <span class="comment">%  Inputs: - (vector) x</span>
+0007 <span class="comment">%          - (int) d = 1 (by column), d = 2 (by row)</span>
+0008 <span class="comment">%  Output: norm 2 of the vector matrix</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%%</span>
+0011 <a name="_sub0" href="#_subfunctions" class="code">function normv = normvector(x,d)</a>
+0012 
+0013 normv = sqrt(sum(x.^2,d));
+0014 
+0015 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

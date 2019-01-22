@@ -1,0 +1,177 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of example_initialization_normals</title>
+  <meta name="keywords" content="example_initialization_normals">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../m2html.css">
+</head>
+<body>
+<img src="../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../index.html">Home</a> &gt;  <a href="index.html">example_initialization_normals</a> &gt; example_initialization_normals.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../index.html"><img alt="<" border="0" src="../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals&nbsp;<img alt=">" border="0" src="../right.png"></a></td></tr></table>-->
+
+<h1>example_initialization_normals
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="box"><strong>This is a script file. </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis 
+  Renato Martins 2017 
+  Email: renatojmsdh@gmail.com
+
+  Use: this is an example for computing the pose initialization
+  from normals using wide FOV sensors as in the IROS 2017 Paper:
+  An Efficient Rotation and Translation Decoupled Initialization from Large Field of View Depth Images
+  R Martins, E Fernandez-Moral, P Rives 
+  IEEE/RSJ International Conference on Intelligent Robots and Systems, IROS'17    
+  
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../matlabicon.gif)">
+<li><a href="../example_initialization_normals/src/init_rotation_normals.html" class="code" title="function  [angle, validPixels, per_inliers, N_ref, N_cur] = init_rotation_normals(D_ref,D_cur,US,mask_reference,mask_saliency,T_initial,sensor_param)">init_rotation_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../example_initialization_normals/src/init_translation.html" class="code" title="function T = init_translation(D_ref,D_cur,sensor_config,mask_valid_pixels,T_initial,sensor_param)">init_translation</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../example_initialization_normals/src/io/load_trajectory.html" class="code" title="function T = load_trajectory(filename)">load_trajectory</a>	</li><li><a href="../example_initialization_normals/src/io/read_depth_image.html" class="code" title="function D = read_depth_image(filename,type_sensor)">read_depth_image</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../example_initialization_normals/src/io/read_sensor_parameters.html" class="code" title="function sensor_parameters = read_sensor_parameters(filename)">read_sensor_parameters</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../example_initialization_normals/src/math/SE3.html" class="code" title="function T = SE3(x)">SE3</a>	</li><li><a href="../example_initialization_normals/src/math/compute_unit_model.html" class="code" title="function [US,sensor_param_mr] = compute_unit_model(sensor_param,level)">compute_unit_model</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../example_initialization_normals/src/tools/multi_resolution_images.html" class="code" title="function varargout = multi_resolution_images(varargin)">multi_resolution_images</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../example_initialization_normals/src/tools/normals_centered.html" class="code" title="function N = normals_centered(D,US,h,w)">normals_centered</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../matlabicon.gif)">
+</ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: this is an example for computing the pose initialization</span>
+0006 <span class="comment">%  from normals using wide FOV sensors as in the IROS 2017 Paper:</span>
+0007 <span class="comment">%  An Efficient Rotation and Translation Decoupled Initialization from Large Field of View Depth Images</span>
+0008 <span class="comment">%  R Martins, E Fernandez-Moral, P Rives</span>
+0009 <span class="comment">%  IEEE/RSJ International Conference on Intelligent Robots and Systems, IROS'17</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">%%</span>
+0012 
+0013 clear all; close all; clc;
+0014 
+0015 <span class="comment">% Add functions to the matlab PATH</span>
+0016 addpath(genpath(<span class="string">'src/'</span>))
+0017 
+0018 simulation = 1;
+0019 <span class="keyword">if</span>(simulation)
+0020     <span class="comment">% Path of the images in simulation</span>
+0021     image_path = <span class="string">'data/simulation/'</span>;
+0022     imre = <span class="string">'depth1165.raw'</span>;
+0023     imcu = <span class="string">'depth1180.raw'</span>;
+0024 <span class="keyword">else</span>
+0025     <span class="comment">% Path of real indoor images</span>
+0026     image_path = <span class="string">'data/real/'</span>;
+0027 <span class="keyword">end</span>
+0028 
+0029 <span class="comment">% Read config of the sequence and calibration sensor</span>
+0030 sensor_param = <a href="../example_initialization_normals/src/io/read_sensor_parameters.html" class="code" title="function sensor_parameters = read_sensor_parameters(filename)">read_sensor_parameters</a>([image_path <span class="string">'config'</span>]);
+0031 
+0032 <span class="comment">% Multi-resolution images: of k+1 levels</span>
+0033 k = 4;
+0034 
+0035 <span class="comment">% Compute unit vectors -- depending on the sensor model specified in the</span>
+0036 <span class="comment">% 'config' file</span>
+0037 [US,sensor_param_mr] = <a href="../example_initialization_normals/src/math/compute_unit_model.html" class="code" title="function [US,sensor_param_mr] = compute_unit_model(sensor_param,level)">compute_unit_model</a>(sensor_param,k);
+0038 
+0039 <span class="comment">% read depth images</span>
+0040 D_ref = <a href="../example_initialization_normals/src/io/read_depth_image.html" class="code" title="function D = read_depth_image(filename,type_sensor)">read_depth_image</a>([image_path imre],sensor_param.sensor_type);
+0041 D_cur = <a href="../example_initialization_normals/src/io/read_depth_image.html" class="code" title="function D = read_depth_image(filename,type_sensor)">read_depth_image</a>([image_path imcu],sensor_param.sensor_type);
+0042 
+0043 <span class="comment">% find valid pixels</span>
+0044 <span class="comment">% change here to avoid the use of some regions of the image</span>
+0045 mask_pixels = ones(size(D_ref));
+0046 
+0047 <span class="comment">% multi-resolution</span>
+0048 [D_ref_mr,D_cur_mr,mask_pixels_mr] = <a href="../example_initialization_normals/src/tools/multi_resolution_images.html" class="code" title="function varargout = multi_resolution_images(varargin)">multi_resolution_images</a>(D_ref,<span class="string">'depth'</span>,D_cur,<span class="string">'depth'</span>,mask_pixels,<span class="string">'logic'</span>,k);
+0049 
+0050 <span class="comment">% flags to control the function state: [observability rotation = 0;</span>
+0051 <span class="comment">%                                       observability translation = 0;</span>
+0052 <span class="comment">%                                       conditioning of the linear system]</span>
+0053 
+0054 <span class="keyword">global</span> flagsInitialization
+0055 flagsInitialization = [0; 0; 0];
+0056 
+0057 
+0058 Nr = -<a href="../example_initialization_normals/src/tools/normals_centered.html" class="code" title="function N = normals_centered(D,US,h,w)">normals_centered</a>(D_ref_mr{k},US);
+0059 Nc = -<a href="../example_initialization_normals/src/tools/normals_centered.html" class="code" title="function N = normals_centered(D,US,h,w)">normals_centered</a>(D_cur_mr{k},US);
+0060 
+0061 <span class="comment">% initial pose guess</span>
+0062 T_initial = eye(4);
+0063 
+0064 <span class="comment">% compute rotation initialization</span>
+0065 disp(<span class="string">'time for estimating normals and the rotation.'</span>);
+0066 tic;
+0067 [angle, valid_pixels, per_inliers] = <a href="../example_initialization_normals/src/init_rotation_normals.html" class="code" title="function  [angle, validPixels, per_inliers, N_ref, N_cur] = init_rotation_normals(D_ref,D_cur,US,mask_reference,mask_saliency,T_initial,sensor_param)">init_rotation_normals</a>(D_ref_mr{k},D_cur_mr{k},US,mask_pixels_mr{k},mask_pixels_mr{k},T_initial);
+0068 <span class="comment">% rad2deg(angle)</span>
+0069 toc
+0070 
+0071 T = T_initial*(<a href="../example_initialization_normals/src/math/SE3.html" class="code" title="function T = SE3(x)">SE3</a>([zeros(3,1);(angle)]));
+0072 
+0073 <span class="comment">%% compute translation initialization</span>
+0074 param = [sensor_param_mr.width sensor_param_mr.minrow];
+0075 disp(<span class="string">'time for estimating normals and the translation'</span>);
+0076 
+0077 tic;
+0078 sensor_config.type = <span class="string">'spherical'</span>;
+0079 sensor_config.unit = US;
+0080 sensor_config.param = [sensor_param_mr.width sensor_param_mr.minrow sensor_param_mr.maxrow];
+0081 <span class="comment">% reference to current</span>
+0082 T = <a href="../example_initialization_normals/src/init_translation.html" class="code" title="function T = init_translation(D_ref,D_cur,sensor_config,mask_valid_pixels,T_initial,sensor_param)">init_translation</a>(D_ref_mr{k},D_cur_mr{k},sensor_config,mask_pixels_mr{k},T,sensor_param_mr);
+0083 <span class="comment">% current to reference</span>
+0084 T = inv(T);
+0085 <span class="comment">% find rotation angles</span>
+0086 r = vrrotmat2vec(T(1:3,1:3));
+0087 <a href="../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(r(1:3)*r(1,4))'
+0088 T(1:3,4)
+0089 toc
+0090 
+0091 <span class="comment">% display results and observability</span>
+0092 <span class="keyword">if</span>(flagsInitialization(1))
+0093     disp(<span class="string">'Could not estimate the rotation.'</span>); 
+0094 <span class="keyword">elseif</span>(flagsInitialization(2)) 
+0095     disp(<span class="string">'Rotation estimated:'</span> ); 
+0096     T
+0097     disp(<span class="string">'But could not estimate the translation.'</span>);
+0098     disp(<span class="string">'Translation conditionning:'</span>);
+0099     flagsInitialization(3)
+0100 <span class="keyword">else</span>
+0101     disp(<span class="string">'Estimated pose: w and t '</span>);
+0102     <a href="../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(angle)
+0103     T(1:3,4)
+0104     
+0105     <span class="comment">% file with ground truth poses</span>
+0106     T_true = <a href="../example_initialization_normals/src/io/load_trajectory.html" class="code" title="function T = load_trajectory(filename)">load_trajectory</a>([image_path <span class="string">'trajectory.traj'</span>]);
+0107     <span class="keyword">if</span>(simulation)
+0108         Trc = inv(reshape(T_true(1166,:),4,4))*(reshape(T_true(1181,:),4,4));
+0109     <span class="keyword">else</span>
+0110         Trc = inv(reshape(T_true(1166,:),4,4))*(reshape(T_true(1181,:),4,4));
+0111     <span class="keyword">end</span>
+0112     <span class="comment">%rot = (norm(skewcoords(skewlog(Trc(1:3,1:3)))));</span>
+0113     r = vrrotmat2vec(Trc(1:3,1:3));
+0114     disp(<span class="string">'Ground truth pose: w and t '</span>);
+0115     <span class="comment">% rotation ground truth</span>
+0116     <a href="../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(r(1:3)*r(1,4))'
+0117     <span class="comment">% translation ground truth</span>
+0118     Trc(1:3,4)
+0119 <span class="keyword">end</span>
+0120 
+0121 
+0122</pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

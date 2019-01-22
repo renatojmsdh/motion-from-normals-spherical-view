@@ -1,0 +1,7 @@
+/* Created by mdot for Matlab */
+digraph m2html {
+
+  load_trajectory [URL="load_trajectory.html"];
+  read_depth_image [URL="read_depth_image.html"];
+  read_sensor_parameters [URL="read_sensor_parameters.html"];
+}

@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of multi_resolution_images</title>
+  <meta name="keywords" content="multi_resolution_images">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">tools</a> &gt; multi_resolution_images.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/tools&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>multi_resolution_images
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function varargout = multi_resolution_images(varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis 
+  Renato Martins 2017 
+  Email: renatojmsdh@gmail.com
+
+  Perform multi-resolution for different image types:
+  - numeric (img) (use classic Gaussian kernel
+  - mask or binary (logical)
+  - depth (custom sub-sampling)
+  Inputs: - Couples (data, type data) for sub-sampling
+          - Last parameter is the number of levels 
+                  
+  Output: 
+          - A cell array containing a cell array of the multi-resolution
+           images
+
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/math/nanconv.html" class="code" title="function c = nanconv(a, k, varargin)">nanconv</a>	NANCONV Convolution in 1D or 2D ignoring NaNs.</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/example_initialization_normals.html" class="code" title="">example_initialization_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Perform multi-resolution for different image types:</span>
+0006 <span class="comment">%  - numeric (img) (use classic Gaussian kernel</span>
+0007 <span class="comment">%  - mask or binary (logical)</span>
+0008 <span class="comment">%  - depth (custom sub-sampling)</span>
+0009 <span class="comment">%  Inputs: - Couples (data, type data) for sub-sampling</span>
+0010 <span class="comment">%          - Last parameter is the number of levels</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">%  Output:</span>
+0013 <span class="comment">%          - A cell array containing a cell array of the multi-resolution</span>
+0014 <span class="comment">%           images</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">%%</span>
+0017 
+0018 <a name="_sub0" href="#_subfunctions" class="code">function varargout = multi_resolution_images(varargin)</a>
+0019 
+0020 <span class="comment">% number of images</span>
+0021 ninputs = (max(nargin,2)-1)/2;
+0022 
+0023 <span class="comment">% number of layers</span>
+0024 l = varargin{nargin};
+0025 
+0026 <span class="keyword">for</span> k = 1:ninputs,
+0027     
+0028     varargout{k}{1} = varargin{2*(k-1)+1};
+0029     
+0030     <span class="comment">% if normal image -- classic impyramid</span>
+0031     <span class="keyword">if</span>(strcmp(varargin(2*(k-1)+2),<span class="string">'img'</span>))       
+0032         
+0033         <span class="keyword">for</span> i = 2:l+1,
+0034             varargout{k}{i} = impyramid(varargout{k}{i-1},<span class="string">'reduce'</span>);
+0035         <span class="keyword">end</span>
+0036     <span class="keyword">end</span>
+0037     
+0038     <span class="comment">% if mask or logic image</span>
+0039     <span class="keyword">if</span>(strcmp(varargin(2*(k-1)+2),<span class="string">'logic'</span>)) 
+0040         
+0041         <span class="keyword">for</span> i = 2:l+1,
+0042             varargout{k}{i} = imresize(varargout{k}{i-1},0.5,<span class="string">'nearest'</span>);
+0043         <span class="keyword">end</span>
+0044     <span class="keyword">end</span>
+0045     
+0046     <span class="comment">% if depth image -- do not consider values with zero</span>
+0047     <span class="comment">% custom sub-sampling with nan</span>
+0048     <span class="keyword">if</span>(strcmp(varargin(2*(k-1)+2),<span class="string">'depth'</span>))
+0049         
+0050         min_depth = 0.1;
+0051         <span class="comment">% put nan in non valid pixels -- pixels with zero value</span>
+0052         varargout{k}{1}(varargout{k}{1}&lt;min_depth) = nan;
+0053         
+0054         <span class="comment">% Custom Gaussian pyramid for the depth</span>
+0055         a = 0.375;
+0056         w1 = [1/4-a/2 1/4 a 1/4 1/4-a/2];
+0057         gauss_filter = w1'*w1;
+0058         
+0059         <span class="keyword">for</span> i = 2:l+1,
+0060             depth_sampled = <a href="../../../example_initialization_normals/src/math/nanconv.html" class="code" title="function c = nanconv(a, k, varargin)">nanconv</a>(varargout{k}{i-1},gauss_filter, <span class="string">'nonanout'</span>);             
+0061             varargout{k}{i} = imresize(depth_sampled,0.5,<span class="string">'nearest'</span>);
+0062         <span class="keyword">end</span>
+0063     <span class="keyword">end</span>
+0064     
+0065 <span class="keyword">end</span>
+0066 
+0067 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

@@ -1,0 +1,9 @@
+/* Created by mdot for Matlab */
+digraph m2html {
+  compute_saliency_geo -> mex_getBestNPoints_initialization;
+  saliency_geometry_sphere -> compute_saliency_geo;
+
+  compute_saliency_geo [URL="compute_saliency_geo.html"];
+  mex_getBestNPoints_initialization [URL="mex_getBestNPoints_initialization.html"];
+  saliency_geometry_sphere [URL="saliency_geometry_sphere.html"];
+}

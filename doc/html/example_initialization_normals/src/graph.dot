@@ -1,0 +1,8 @@
+/* Created by mdot for Matlab */
+digraph m2html {
+  init_translation -> compute_translation;
+
+  compute_translation [URL="compute_translation.html"];
+  init_rotation_normals [URL="init_rotation_normals.html"];
+  init_translation [URL="init_translation.html"];
+}

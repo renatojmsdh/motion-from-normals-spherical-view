@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of findmodes_rob</title>
+  <meta name="keywords" content="findmodes_rob">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">pdf_distributions</a> &gt; findmodes_rob.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/pdf_distributions&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>findmodes_rob
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [nmodes,indmodes] = findmodes_rob(data,s,threshold) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: find and extract modes from a distribution.
+  Inputs: - data (vector): the data of the distribution
+          - s (vector) or (int): if 's' is a vector, the distribution is done using bin = s
+            if 's' is a scalar, the distribution is going to be computed with bin = [min(data):max(data)-min(data)/s:max(data) 
+          - threshold (double): to extract all modes smaller than threshold*(main mode) in case of multimodal distribution
+  Outputs: 
+          - number of modes
+          - cell array with the indices of the data that belongs to each mode.
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="findInliersRot_new.html" class="code" title="function validPixels = findInliersRot_new(N_ref,N_cur,pos_warp,mask_reference,display2,number)">findInliersRot_new</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: find and extract modes from a distribution.</span>
+0006 <span class="comment">%  Inputs: - data (vector): the data of the distribution</span>
+0007 <span class="comment">%          - s (vector) or (int): if 's' is a vector, the distribution is done using bin = s</span>
+0008 <span class="comment">%            if 's' is a scalar, the distribution is going to be computed with bin = [min(data):max(data)-min(data)/s:max(data)</span>
+0009 <span class="comment">%          - threshold (double): to extract all modes smaller than threshold*(main mode) in case of multimodal distribution</span>
+0010 <span class="comment">%  Outputs:</span>
+0011 <span class="comment">%          - number of modes</span>
+0012 <span class="comment">%          - cell array with the indices of the data that belongs to each mode.</span>
+0013 <span class="comment">%%</span>
+0014 
+0015 <a name="_sub0" href="#_subfunctions" class="code">function [nmodes,indmodes] = findmodes_rob(data,s,threshold)</a>
+0016 
+0017 <span class="comment">% initially only the max peak is considered</span>
+0018 
+0019 <span class="comment">%% attention -- I've observed a difference between the count and the plotted bins using hist</span>
+0020 <span class="comment">% '[count,bin] = hist(data,s)' is different than the count plotted in the</span>
+0021 <span class="comment">% 'figure using hist(data,s)'. The behavior becames similar when we use</span>
+0022 <span class="comment">% only the number of bins 'numel(s)' instead of the bins itself. To check</span>
+0023 <span class="comment">% later.</span>
+0024 
+0025 <span class="comment">% convert edges to center</span>
+0026 centerd = s(2)-s(1);
+0027 
+0028 <span class="comment">% it is circular the dist</span>
+0029 center = s + centerd/2;
+0030 
+0031 [count,bin] = hist(data,center);
+0032 
+0033 <span class="comment">% with histc, we can specify the bins edges directly</span>
+0034 <span class="comment">%[count,bin] = hist(data,s);</span>
+0035 <span class="comment">%keyboard</span>
+0036 <span class="comment">% convert back center to edges</span>
+0037 edge = bin(2) -bin(1);
+0038 bin = bin+edge/2;
+0039 <span class="comment">%bin = s;</span>
+0040 
+0041 ind = zeros(size(data));
+0042 pp = find(count &gt;= max(count));
+0043 pp1 = find(count &gt;= threshold*max(count));
+0044 
+0045 <span class="comment">% consider near bins as inliers</span>
+0046 valid_bins = find(abs(pp1 - pp(1)) &lt; 3);
+0047 
+0048 <span class="keyword">for</span> i = 1:size(valid_bins,2),
+0049     p = pp1(valid_bins(i));
+0050     <span class="keyword">if</span>(p &gt;1)
+0051         pos_pp = find(data&lt;=bin(p) &amp; data&gt;=bin(p-1));
+0052     <span class="keyword">else</span>
+0053         pos_pp = find(data&lt;=bin(p));
+0054     <span class="keyword">end</span>
+0055     
+0056     ind(pos_pp) = 1;    
+0057 <span class="keyword">end</span>
+0058 
+0059 indmodes{1} = ind;
+0060 
+0061 <span class="comment">% check if the distribution is multi-modal</span>
+0062 <span class="keyword">if</span>(numel(valid_bins)==numel(pp1))
+0063     nmodes = 1;
+0064     <span class="keyword">return</span>
+0065 <span class="keyword">else</span>
+0066     
+0067     <span class="comment">% do for other modes</span>
+0068     remaining_modes = ones(size(pp1));
+0069     <span class="comment">% exclude already used bins</span>
+0070     remaining_modes(valid_bins) = 0;
+0071     <span class="comment">% find the second max mode -- not used</span>
+0072     pp = find(count(pp1(remaining_modes&gt;0)) &gt;= max(count(pp1(remaining_modes&gt;0))));
+0073     valid_bins = find(abs(pp1(remaining_modes&gt;0) - pp1(pp(1))) &lt; 3);
+0074     <span class="comment">%pp = find(count &gt;= threshold*max(count) &amp; count &lt; max(count));</span>
+0075     <span class="comment">%% rmartins</span>
+0076     <span class="comment">% should do recursive for more than two bins</span>
+0077     nmodes = sum(remaining_modes) - numel(valid_bins) + 2;
+0078     
+0079     <span class="keyword">if</span>(~isempty(valid_bins))
+0080         <span class="comment">%pp = find(count &gt;= threshold*max(count));</span>
+0081         <span class="keyword">for</span> i = 1:size(valid_bins,2),
+0082             indx = zeros(size(data));
+0083             p = pp1(valid_bins(i));
+0084             <span class="keyword">if</span>(p &gt;1)
+0085                 pos_pp = find(data&lt;=bin(p) &amp; data&gt;=bin(p-1));
+0086             <span class="keyword">else</span>
+0087                 pos_pp = find(data&lt;=bin(p));
+0088             <span class="keyword">end</span>
+0089             
+0090             indx(pos_pp) = 1;
+0091             indmodes{i+1} = indx;
+0092         <span class="keyword">end</span>
+0093     <span class="keyword">end</span>
+0094 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

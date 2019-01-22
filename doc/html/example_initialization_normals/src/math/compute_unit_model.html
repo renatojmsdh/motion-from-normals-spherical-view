@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of compute_unit_model</title>
+  <meta name="keywords" content="compute_unit_model">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">math</a> &gt; compute_unit_model.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/math&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>compute_unit_model
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [US,sensor_param_mr] = compute_unit_model(sensor_param,level) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis 
+  Renato Martins 2017 
+  Email: renatojmsdh@gmail.com
+
+  Build unit model from sensor spec
+
+  Inputs: - sensor parameters
+          - level resolution 
+                  
+  Output: 
+          - US (matrix MxNx3) of unit sensor model
+
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/tools/gensphere.html" class="code" title="function [Xs Ys Zs step_theta step_phi] = gensphere(width,height)">gensphere</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/example_initialization_normals.html" class="code" title="">example_initialization_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Build unit model from sensor spec</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">%  Inputs: - sensor parameters</span>
+0008 <span class="comment">%          - level resolution</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%  Output:</span>
+0011 <span class="comment">%          - US (matrix MxNx3) of unit sensor model</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">%%</span>
+0014 
+0015 <a name="_sub0" href="#_subfunctions" class="code">function [US,sensor_param_mr] = compute_unit_model(sensor_param,level)</a>
+0016 
+0017 w = (sensor_param.width)/(2^(level-1));
+0018 h = sensor_param.height/(2^(level-1));
+0019 
+0020 <span class="comment">% if spherical model</span>
+0021 [x,y,z] = <a href="../../../example_initialization_normals/src/tools/gensphere.html" class="code" title="function [Xs Ys Zs step_theta step_phi] = gensphere(width,height)">gensphere</a>(w,h);
+0022 
+0023 <span class="comment">% minrow is an odd number</span>
+0024 minrow = ceil((sensor_param.minrow)/(2^(level-1)));
+0025 <span class="comment">% maxrow is even</span>
+0026 maxrow = floor(sensor_param.maxrow/(2^(level-1)));
+0027 
+0028 <span class="comment">%d = sensor_param.ROI_height/(2^(level-1));</span>
+0029 <span class="comment">%minrow = (h-d)/2;</span>
+0030 X_ROI = x(minrow:maxrow,:);
+0031 Y_ROI = y(minrow:maxrow,:);
+0032 Z_ROI = z(minrow:maxrow,:);
+0033 
+0034 US = zeros(maxrow-minrow+1,w,3);
+0035 US(:,:,1) = X_ROI;
+0036 US(:,:,2) = Y_ROI;
+0037 US(:,:,3) = Z_ROI;
+0038 
+0039 <span class="comment">% parameters new resolution</span>
+0040 sensor_param_mr.width = w;
+0041 sensor_param_mr.height = maxrow-minrow+1;
+0042 sensor_param_mr.minrow = minrow;
+0043 sensor_param_mr.maxrow = maxrow;
+0044 
+0045 <span class="comment">%keyboard</span></pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of compute_translation</title>
+  <meta name="keywords" content="compute_translation">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../m2html.css">
+</head>
+<body>
+<img src="../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../index.html">Home</a> &gt;  <a href="../index.html">example_initialization_normals</a> &gt; <a href="index.html">src</a> &gt; compute_translation.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../index.html"><img alt="<" border="0" src="../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src&nbsp;<img alt=">" border="0" src="../../right.png"></a></td></tr></table>-->
+
+<h1>compute_translation
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="box"><strong>function t = compute_translation(D_reff,N_reff,D_curf,N_curf,sensor_config,pos_warp) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: find the translation from the overlapped pixels.
+  Inputs: - D_ref (vector n x 1): the reference depth (after de-rotation)
+          - N_ref (vector 3 x n): the reference normals after derotation
+          - D_cur (vector n x 1): the current depth 
+          - N_cur (vector 3 x n): the current normals 
+          - X Y Z (vector n x 1): the unit vectors of the viewing direction of the point (unit sphere).
+  Output: 
+          - t (3 x 1): the translation 
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="../../example_initialization_normals/src/math/deg2rad.html" class="code" title="function angle = deg2rad(deg)">deg2rad</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../example_initialization_normals/src/math/normvector.html" class="code" title="function normv = normvector(x,d)">normvector</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../example_initialization_normals/src/math/ppv.html" class="code" title="function A = ppv(v) ;">ppv</a>	PPV  Antisymmetric matrix for cross product.</li><li><a href="../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../example_initialization_normals/src/saliency/saliency_geometry_sphere.html" class="code" title="function mask_saliency = saliency_geometry_sphere(Jp,pos_warp,param)">saliency_geometry_sphere</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../matlabicon.gif)">
+<li><a href="init_translation.html" class="code" title="function T = init_translation(D_ref,D_cur,sensor_config,mask_valid_pixels,T_initial,sensor_param)">init_translation</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: find the translation from the overlapped pixels.</span>
+0006 <span class="comment">%  Inputs: - D_ref (vector n x 1): the reference depth (after de-rotation)</span>
+0007 <span class="comment">%          - N_ref (vector 3 x n): the reference normals after derotation</span>
+0008 <span class="comment">%          - D_cur (vector n x 1): the current depth</span>
+0009 <span class="comment">%          - N_cur (vector 3 x n): the current normals</span>
+0010 <span class="comment">%          - X Y Z (vector n x 1): the unit vectors of the viewing direction of the point (unit sphere).</span>
+0011 <span class="comment">%  Output:</span>
+0012 <span class="comment">%          - t (3 x 1): the translation</span>
+0013 <span class="comment">%%</span>
+0014 <a name="_sub0" href="#_subfunctions" class="code">function t = compute_translation(D_reff,N_reff,D_curf,N_curf,sensor_config,pos_warp)</a>
+0015 
+0016 <span class="keyword">global</span> indexImage
+0017 <span class="keyword">global</span> namef
+0018 <span class="keyword">global</span> flagsInitialization
+0019 
+0020 N_refn = N_reff(:,pos_warp);
+0021 N_curn = N_curf(:,pos_warp);
+0022 D_refn = D_reff(pos_warp);
+0023 D_curn = D_curf(pos_warp);
+0024 
+0025 <span class="comment">% max angle normal - view direction</span>
+0026 angle2 = 70;
+0027 
+0028 <span class="comment">% max condit</span>
+0029 max_cond = 20;
+0030 
+0031 <span class="comment">% translation observability</span>
+0032 observ_trans = 1;
+0033 X = sensor_config.unit(:,:,1);
+0034 Y = sensor_config.unit(:,:,2);
+0035 Z = sensor_config.unit(:,:,3);
+0036 npn = [X(pos_warp)'; Y(pos_warp)'; Z(pos_warp)'];
+0037 n1 = dot(N_curn,npn)';
+0038 
+0039 <span class="comment">%% using saliency</span>
+0040 <span class="comment">% consider the points that have a viewing angle of max 70 deg</span>
+0041 pos = abs(n1)&gt;cos(<a href="../../example_initialization_normals/src/math/deg2rad.html" class="code" title="function angle = deg2rad(deg)">deg2rad</a>(angle2));
+0042 
+0043 pos_warp2 = pos_warp(pos);
+0044 saliency_points = <a href="../../example_initialization_normals/src/saliency/saliency_geometry_sphere.html" class="code" title="function mask_saliency = saliency_geometry_sphere(Jp,pos_warp,param)">saliency_geometry_sphere</a>(N_curn(:,pos)',pos_warp2,size(D_refn));
+0045 pos2 = find(saliency_points&gt;0);
+0046 
+0047 proj = [1,2,3];
+0048 cdx = cond(N_curn(:,pos2));
+0049 <span class="keyword">if</span>(cdx &gt; max_cond)
+0050     <span class="comment">% take out the dimension we could not estimate</span>
+0051     <span class="comment">% perform svd ([u,s,v] =svd(A);</span>
+0052 
+0053     <span class="comment">% rank reduction using gaussian-jordan ellimination with partial pivoting</span>
+0054     [r,proj] = rref(N_curn(:,pos2)*N_curn(:,pos2)',0.05*size(N_curn(:,pos2),2));    
+0055     
+0056     <span class="keyword">if</span>(numel(proj)&lt;2)        
+0057        <span class="keyword">if</span>(proj==1)
+0058            proj=[1 2];
+0059        <span class="keyword">elseif</span>(proj==2)
+0060            proj = [1 2];
+0061        <span class="keyword">else</span>
+0062            proj = [2 3];
+0063        <span class="keyword">end</span>       
+0064     <span class="keyword">end</span>
+0065     
+0066     N_cur = zeros(3,size(pos2,1));
+0067     N_ref = N_cur;
+0068     
+0069     N_cur(proj,:) = N_curn(proj,pos2);
+0070     N_ref(proj,:) = N_refn(proj,pos2);
+0071     np = zeros(size(N_cur));
+0072     np(proj,:) = npn(proj,pos2);
+0073     observ_trans = 0;
+0074     flagsInitialization(2) = 1;
+0075 <span class="keyword">else</span>
+0076     N_ref = N_refn(:,pos2);
+0077     N_cur = N_curn(:,pos2);
+0078     np = npn(:,pos2);    
+0079 <span class="keyword">end</span>
+0080 
+0081 D_ref = D_refn(pos2);
+0082 D_cur = D_curn(pos2);
+0083 
+0084 <span class="comment">% normal_vector_distribution(N_cur,240);</span>
+0085 n1 = dot(N_cur,np)';
+0086 
+0087 n2 = zeros(size(n1));
+0088 <span class="comment">% axis</span>
+0089 cr = cross(N_ref,N_cur);
+0090 axisr = cr./repmat(<a href="../../example_initialization_normals/src/math/normvector.html" class="code" title="function normv = normvector(x,d)">normvector</a>(cr,1),3,1);
+0091 
+0092 <span class="comment">% angle</span>
+0093 rot = acos(dot(N_ref,N_cur));
+0094 
+0095 <span class="keyword">for</span> i = 1:size(N_ref,2),
+0096     <span class="keyword">if</span>(abs(<a href="../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(rot(i)))&gt;0.5)        
+0097         <span class="comment">% small rotation approximation</span>
+0098         R = eye(3) + <a href="../../example_initialization_normals/src/math/ppv.html" class="code" title="function A = ppv(v) ;">ppv</a>(axisr(:,i)*rot(i));
+0099     <span class="keyword">else</span>
+0100         R = eye(3);
+0101     <span class="keyword">end</span>
+0102     n2(i) = N_cur(:,i)'*R*np(:,i);
+0103 <span class="keyword">end</span>
+0104 
+0105 
+0106 d = D_cur.*n1 - D_ref.*n2;
+0107 A = N_cur(proj,:);
+0108 
+0109 t = zeros(3,1);
+0110 
+0111 <span class="comment">% solve the system</span>
+0112 <span class="keyword">if</span>(length(d)&gt;5)
+0113 t(proj) = robustfit(A',d,<span class="string">'huber'</span>,[],<span class="string">'off'</span>);
+0114 <span class="keyword">end</span>
+0115 t(isnan(t)) = 0;</pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

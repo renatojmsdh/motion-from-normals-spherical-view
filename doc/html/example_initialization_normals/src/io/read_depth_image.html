@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of read_depth_image</title>
+  <meta name="keywords" content="read_depth_image">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">io</a> &gt; read_depth_image.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/io&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>read_depth_image
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function D = read_depth_image(filename,type_sensor) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: read depth image coming from different sensors.
+       The sensor type is indicated in the last line of read_parameters function 
+  Inputs: - filename (string)
+          - type_sensor (string)             
+  Outputs: 
+          - The depth image in meters
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/example_initialization_normals.html" class="code" title="">example_initialization_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: read depth image coming from different sensors.</span>
+0006 <span class="comment">%       The sensor type is indicated in the last line of read_parameters function</span>
+0007 <span class="comment">%  Inputs: - filename (string)</span>
+0008 <span class="comment">%          - type_sensor (string)</span>
+0009 <span class="comment">%  Outputs:</span>
+0010 <span class="comment">%          - The depth image in meters</span>
+0011 <span class="comment">%%</span>
+0012 
+0013 <a name="_sub0" href="#_subfunctions" class="code">function D = read_depth_image(filename,type_sensor)</a>
+0014 
+0015 <span class="comment">% if outdoor rig sensor</span>
+0016 <span class="keyword">if</span>(strcmp(type_sensor,<span class="string">'outdoor'</span>))
+0017     file = fopen(filename,<span class="string">'r'</span>);
+0018     h = fread(file,1,<span class="string">'uint16'</span>);
+0019     w = fread(file,1,<span class="string">'uint16'</span>);
+0020     D = reshape(fread(file,h*w,<span class="string">'float32'</span>),h,w);
+0021     fclose(file);
+0022 
+0023 <span class="comment">% if indoor rig sensor</span>
+0024 <span class="keyword">elseif</span>(strcmp(type_sensor,<span class="string">'indoor'</span>))
+0025     D = imread(filename);
+0026     D = double(D);
+0027     D = D/1000;
+0028     <span class="comment">%disp('Depth max');</span>
+0029     <span class="comment">%max(max(D))</span>
+0030 
+0031 <span class="comment">% if sponza atrium images</span>
+0032 <span class="keyword">elseif</span>(strcmp(type_sensor,<span class="string">'simulation'</span>))
+0033     file = fopen(filename,<span class="string">'r'</span>);
+0034     h = fread(file,1,<span class="string">'uint16'</span>);
+0035     w = fread(file,1,<span class="string">'uint16'</span>);
+0036     <span class="comment">% stored in row-wise order</span>
+0037     D = reshape(fread(file,h*w,<span class="string">'float32'</span>),w,h)';
+0038     fclose(file);
+0039 <span class="keyword">end</span></pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

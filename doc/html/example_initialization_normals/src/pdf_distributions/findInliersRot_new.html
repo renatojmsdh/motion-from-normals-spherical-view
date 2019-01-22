@@ -1,0 +1,374 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of findInliersRot_new</title>
+  <meta name="keywords" content="findInliersRot_new">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">pdf_distributions</a> &gt; findInliersRot_new.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/pdf_distributions&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>findInliersRot_new
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function validPixels = findInliersRot_new(N_ref,N_cur,pos_warp,mask_reference,display2,number) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: Find the overlapped pixels between two views using the surface normals
+  Inputs: - N_ref,N_cur (matrix 3 x mn): reference and current normals
+          - pos_warp (vector n x 1): valid pixels to warp
+          - mask_reference (matrix m x n): valid matrix
+          - display2 (flag): display flag
+          - number (integer): the frame number (it is equivalent to GLOBAL variable 'indexImage'
+   
+  Outputs: 
+          - validPixels (vector n x 1): pixel indices of overlapped surfaces
+          
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="findmodes_rob.html" class="code" title="function [nmodes,indmodes] = findmodes_rob(data,s,threshold)">findmodes_rob</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/init_rotation_normals.html" class="code" title="function  [angle, validPixels, per_inliers, N_ref, N_cur] = init_rotation_normals(D_ref,D_cur,US,mask_reference,mask_saliency,T_initial,sensor_param)">init_rotation_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: Find the overlapped pixels between two views using the surface normals</span>
+0006 <span class="comment">%  Inputs: - N_ref,N_cur (matrix 3 x mn): reference and current normals</span>
+0007 <span class="comment">%          - pos_warp (vector n x 1): valid pixels to warp</span>
+0008 <span class="comment">%          - mask_reference (matrix m x n): valid matrix</span>
+0009 <span class="comment">%          - display2 (flag): display flag</span>
+0010 <span class="comment">%          - number (integer): the frame number (it is equivalent to GLOBAL variable 'indexImage'</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">%  Outputs:</span>
+0013 <span class="comment">%          - validPixels (vector n x 1): pixel indices of overlapped surfaces</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">%%</span>
+0016 
+0017 <a name="_sub0" href="#_subfunctions" class="code">function validPixels = findInliersRot_new(N_ref,N_cur,pos_warp,mask_reference,display2,number)</a>
+0018 
+0019 <span class="keyword">global</span> indexImage
+0020 <span class="keyword">global</span> namef
+0021 <span class="keyword">global</span> flagsInitialization
+0022 
+0023 <span class="comment">% discretization precision 5 degrees</span>
+0024 n = ceil(360/5);
+0025 s = -pi:2*pi/n:pi;
+0026 
+0027 <span class="comment">% threshold for chhecking multi-modes</span>
+0028 thresmode = 0.8;
+0029 
+0030 <span class="comment">% observability flag</span>
+0031 rot_obs = 1;
+0032 
+0033 <span class="comment">%%residuals</span>
+0034 <span class="comment">%in z -- R G B = Z Y X</span>
+0035 N_refz = sqrt(N_ref(2,pos_warp).^2+N_ref(3,pos_warp).^2); N_refz(N_refz&lt;0.1) = nan;
+0036 N_curz = sqrt(N_cur(2,pos_warp).^2+N_cur(3,pos_warp).^2); N_curz(N_curz&lt;0.1) = nan;
+0037 
+0038 N_projr = zeros(3,size(pos_warp,1));
+0039 N_projc = N_projr;
+0040 
+0041 N_projr([2 3],:) = N_ref([2 3],pos_warp)./repmat(N_refz,2,1);
+0042 N_projc([2 3],:) = N_cur([2 3],pos_warp)./repmat(N_curz,2,1);
+0043 
+0044 residualszs = cross(N_projr,N_projc); 
+0045 residualsza = dot(N_projr,N_projc);  
+0046 <span class="comment">% avoid rounding errors -- otherwise acos is complex</span>
+0047 residualsza(residualsza&gt;1) = 1; residualsza(residualsza&lt;-1) = -1;
+0048 residualsz = acos(residualsza).*sign(residualszs(1,:));
+0049 <span class="comment">%keyboard</span>
+0050 <span class="keyword">if</span>(display2)
+0051     figure, hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsz),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s));
+0052     axis([-180 180 0 inf]);
+0053     xlabel(<span class="string">'angle Z [deg]'</span>);
+0054     ylabel(<span class="string">'hist'</span>);
+0055     legend(<span class="string">'angle projected Z'</span>);
+0056     axis([-180 180 0 inf]);
+0057     grid
+0058     <span class="comment">%matlab2tikz('./tikzfolder/figure/hisz.tikz', 'height', '\figureheight', 'width', '\figurewidth');</span>
+0059 <span class="keyword">end</span>
+0060 
+0061 Nz = isnan(N_refz.*N_curz); 
+0062 
+0063 <span class="comment">% mask_pixels = zeros(size(mask_reference));</span>
+0064 <span class="comment">% mask_pixels(pos_warp) = deg2rad(residualsz);</span>
+0065 <span class="comment">% figure, imshow(mask_pixels)</span>
+0066 <span class="comment">% keyboard</span>
+0067 [mz, indz] = <a href="findmodes_rob.html" class="code" title="function [nmodes,indmodes] = findmodes_rob(data,s,threshold)">findmodes_rob</a>(residualsz,s,thresmode);
+0068 <span class="comment">%keyboard</span>
+0069 Nz(indz{1}&gt;0) = 1;
+0070 
+0071 <span class="keyword">if</span>(mz&gt;1)
+0072     rot_obs = 0;
+0073     <span class="keyword">if</span>(display2)
+0074         <span class="keyword">for</span> i = 1:mz
+0075             N = zeros(size(N_refz));
+0076             mask_pixels = zeros(size(mask_reference));
+0077             N(indz{i}&gt;0) = 1; mask_pixels(pos_warp) = N;
+0078             figure, imshow(mask_pixels);
+0079             title([<span class="string">'valid pixels X for mode '</span> num2str(i)]);
+0080             imwrite(mask_pixels,[namef <span class="string">'valid_pixelsx_mode_'</span> num2str(i) <span class="string">'_'</span> num2str(indexImage) <span class="string">'.png'</span>]);
+0081             <span class="comment">%saveas(gcf,[namef 'valid_pixelsx_mode_' num2str(i) '_' num2str(indexImage) '.png'])</span>
+0082             close(gcf);
+0083         <span class="keyword">end</span>
+0084         figure, hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsz),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s));
+0085         <span class="comment">%title('angle in X');</span>
+0086         xlabel(<span class="string">'angle X [deg]'</span>);
+0087         ylabel(<span class="string">'hist'</span>);
+0088         grid;
+0089         saveas(gcf,[namef <span class="string">'normal_histx_'</span> num2str(indexImage) <span class="string">'.png'</span>])
+0090         matlab2tikz([namef <span class="string">'normal_histx_'</span> num2str(indexImage) <span class="string">'.tikz'</span>],<span class="string">'height'</span>, <span class="string">'\figureheight'</span>, <span class="string">'width'</span>, <span class="string">'\figurewidth'</span>)
+0091         close(gcf);
+0092     <span class="keyword">end</span>
+0093 <span class="keyword">end</span>
+0094 
+0095 <span class="keyword">if</span>(display2)
+0096     zz = zeros(size(mask_reference));
+0097     zz(pos_warp) = Nz;
+0098     figure, imshow(zz);
+0099     title(<span class="string">'inliers in Z'</span>);
+0100     <span class="comment">%imwrite(zz,['./tikzfolder/videoICRA/inZ' sprintf('%04d',number) '.png']);</span>
+0101 <span class="keyword">end</span>
+0102 
+0103 <span class="comment">%p = find(count == max(count(1:end)));</span>
+0104 <span class="comment">%pos_warp = find(residuals&lt;=bin(p) &amp; residuals&gt;=bin(p-1) | residuals&lt;=bin(1));</span>
+0105 
+0106 N_refy = sqrt(N_ref(1,pos_warp).^2+N_ref(3,pos_warp).^2); N_refy(N_refy&lt;0.1) = nan;
+0107 N_cury = sqrt(N_cur(1,pos_warp).^2+N_cur(3,pos_warp).^2); N_cury(N_cury&lt;0.1) = nan;
+0108 
+0109 N_projr = zeros(3,size(pos_warp,1));
+0110 N_projc = N_projr;
+0111 
+0112 N_projr([1 3],:) = N_ref([1 3],pos_warp)./repmat(N_refy,2,1);
+0113 N_projc([1 3],:) = N_cur([1 3],pos_warp)./repmat(N_cury,2,1);
+0114 
+0115 <span class="comment">% residualsy = cross(N_projr,N_projc);</span>
+0116 <span class="comment">% residualsy = asin(residualsy(2,:));</span>
+0117 residualsys = cross(N_projr,N_projc); 
+0118 residualsya = (dot(N_projr,N_projc));
+0119 residualsya(residualsya&gt;1) = 1; residualsya(residualsya&lt;-1) = -1;
+0120 residualsy = acos(residualsya).*sign(residualsys(2,:));
+0121 <span class="keyword">if</span>(display2)
+0122     figure, hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsy),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s));
+0123     axis([0 180 0 inf]);
+0124     xlabel(<span class="string">'angle Y [deg]'</span>);
+0125     ylabel(<span class="string">'hist'</span>);
+0126     legend(<span class="string">'angle projected Y'</span>);
+0127     grid;
+0128     <span class="comment">%matlab2tikz('./tikzfolder/figure/histy.tikz', 'height', '\figureheight', 'width', '\figurewidth');</span>
+0129 <span class="keyword">end</span>
+0130 
+0131 <span class="comment">%keyboard</span>
+0132 Ny = isnan(N_refy.*N_cury); 
+0133 [my, indy] = <a href="findmodes_rob.html" class="code" title="function [nmodes,indmodes] = findmodes_rob(data,s,threshold)">findmodes_rob</a>(residualsy,s,thresmode);
+0134 Ny(indy{1}&gt;0) = 1;
+0135 
+0136 <span class="keyword">if</span>(my&gt;1)
+0137     rot_obs = 0;
+0138     <span class="keyword">if</span>(display2)
+0139         <span class="keyword">for</span> i = 1:my
+0140             N = zeros(size(N_refy));
+0141             mask_pixels = zeros(size(mask_reference));
+0142             N(indy{i}&gt;0) = 1; mask_pixels(pos_warp) = N;
+0143             figure, imshow(mask_pixels);
+0144             title([<span class="string">'valid pixels Y for mode '</span> num2str(i)]);
+0145             <span class="comment">%saveas(gcf,[namef 'valid_pixelsy_mode_' num2str(i) '_' num2str(indexImage) '.png'])</span>
+0146             imwrite(mask_pixels,[namef <span class="string">'valid_pixelsy_mode_'</span> num2str(i) <span class="string">'_'</span> num2str(indexImage) <span class="string">'.png'</span>]);
+0147             close(gcf);
+0148         <span class="keyword">end</span>
+0149         figure, hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsy),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s));
+0150         <span class="comment">%title('angle in Y');</span>
+0151         xlabel(<span class="string">'angle Y [deg]'</span>);
+0152         ylabel(<span class="string">'hist'</span>);
+0153         grid;
+0154         saveas(gcf,[namef <span class="string">'normal_histy_'</span> num2str(indexImage) <span class="string">'.png'</span>])
+0155         <span class="comment">%matlab2tikz([namef 'normal_histy_' num2str(indexImage) '.tikz'],'height', '\figureheight', 'width', '\figurewidth')</span>
+0156         close(gcf);
+0157     <span class="keyword">end</span>
+0158     
+0159     <span class="comment">%keyboard</span>
+0160 <span class="keyword">end</span>
+0161 
+0162 <span class="keyword">if</span>(display2)
+0163     zz = zeros(size(mask_reference));
+0164     zz(pos_warp) = Ny;
+0165     figure, imshow(zz);
+0166     xlabel(<span class="string">'angle Y [deg]'</span>);
+0167     ylabel(<span class="string">'hist'</span>);
+0168     grid;
+0169     title(<span class="string">'inliers in Y'</span>);
+0170     <span class="comment">%imwrite(zz,['./tikzfolder/videoICRA/inY' sprintf('%04d',number) '.png']);</span>
+0171 <span class="keyword">end</span>
+0172 
+0173 N_refx = sqrt(N_ref(1,pos_warp).^2+N_ref(2,pos_warp).^2); N_refx(N_refx&lt;0.1) = nan;
+0174 N_curx = sqrt(N_cur(1,pos_warp).^2+N_cur(2,pos_warp).^2); N_curx(N_curx&lt;0.1) = nan;
+0175 
+0176 N_projr = zeros(3,size(pos_warp,1));
+0177 N_projc = N_projr;
+0178 
+0179 N_projr([1 2],:) = N_ref([1 2],pos_warp)./repmat(N_refx,2,1);
+0180 N_projc([1 2],:) = N_cur([1 2],pos_warp)./repmat(N_curx,2,1);
+0181 
+0182 <span class="comment">% residualsx = cross(N_projr,N_projc);</span>
+0183 <span class="comment">% residualsx = asin(residualsx(3,:));</span>
+0184 residualsxs = cross(N_projr,N_projc); 
+0185 residualsxa = (dot(N_projr,N_projc));
+0186 residualsxa(residualsxa&gt;1) = 1; residualsxa(residualsxa&lt;-1) = -1;
+0187 residualsx = acos(residualsxa).*sign(residualsxs(3,:));
+0188 <span class="keyword">if</span>(display2)
+0189     figure, hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsx),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s));
+0190     axis([0 180 0 inf]);
+0191     xlabel(<span class="string">'angle X [deg]'</span>);
+0192     ylabel(<span class="string">'hist'</span>);
+0193     legend(<span class="string">'angle projected X'</span>);
+0194     grid;
+0195     <span class="comment">%matlab2tikz('./tikzfolder/figure/histx.tikz', 'height', '\figureheight', 'width', '\figurewidth');</span>
+0196     <span class="comment">%nanmedian(residualsx)</span>
+0197     <span class="comment">%nanmedian(residualsy)</span>
+0198     <span class="comment">%nanmedian(residualsz)</span>
+0199 <span class="keyword">end</span>
+0200 <span class="comment">%keyboard</span>
+0201 Nx = isnan(N_refx.*N_curx); 
+0202 [mx,indx] = <a href="findmodes_rob.html" class="code" title="function [nmodes,indmodes] = findmodes_rob(data,s,threshold)">findmodes_rob</a>(residualsx,s,thresmode);
+0203 Nx(indx{1}&gt;0) = 1;
+0204 
+0205 <span class="keyword">if</span>(display2)
+0206 figure;
+0207 v = {<span class="string">'angle X [deg]'</span>, <span class="string">'angle Y [deg]'</span>, <span class="string">'angle Z [deg]'</span>};
+0208 subplot(1,3,1), hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsz),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s)); grid;
+0209     ylabel(<span class="string">'hist'</span>);
+0210     xlabel(v{1});
+0211     subplot(1,3,2), hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsy),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s)); grid;
+0212     ylabel(<span class="string">'hist'</span>);
+0213     xlabel(v{2});
+0214 subplot(1,3,3), hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsx),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s)); grid;
+0215     ylabel(<span class="string">'hist'</span>);
+0216     xlabel(v{3});
+0217     
+0218 <span class="keyword">end</span>
+0219  
+0220    <span class="comment">% keyboard</span>
+0221 
+0222 
+0223 <span class="keyword">if</span>(mx&gt;1)
+0224     rot_obs = 0;
+0225     <span class="keyword">if</span>(display2)
+0226         <span class="comment">% multi-modal dist</span>
+0227         <span class="keyword">for</span> i = 1:mx
+0228             N = zeros(size(N_refx));
+0229             mask_pixels = zeros(size(mask_reference));
+0230             N(indx{i}&gt;0) = 1; mask_pixels(pos_warp) = N;
+0231             figure, imshow(mask_pixels);
+0232             title([<span class="string">'valid pixels for mode '</span> num2str(i)]);
+0233             imwrite(mask_pixels,[namef <span class="string">'valid_pixelsz_mode_'</span> num2str(i) <span class="string">'_'</span> num2str(indexImage) <span class="string">'.png'</span>]);
+0234             <span class="comment">%saveas(gcf,[namef 'valid_pixelsz_mode_' num2str(i) '_' num2str(indexImage) '.png'])</span>
+0235             close(gcf);
+0236         <span class="keyword">end</span>
+0237         figure, hist(<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(residualsx),<a href="../../../example_initialization_normals/src/math/rad2deg.html" class="code" title="function deg = rad2deg(angle)">rad2deg</a>(s));
+0238         <span class="comment">%title('angle in Z');</span>
+0239         xlabel(<span class="string">'angle Z [deg]'</span>);
+0240         ylabel(<span class="string">'hist'</span>);
+0241         grid;
+0242         saveas(gcf,[namef <span class="string">'normal_histz_'</span> num2str(indexImage) <span class="string">'.png'</span>])
+0243         matlab2tikz([namef <span class="string">'normal_histz_'</span> num2str(indexImage) <span class="string">'.tikz'</span>],<span class="string">'height'</span>, <span class="string">'\figureheight'</span>, <span class="string">'width'</span>, <span class="string">'\figurewidth'</span>)
+0244         close(gcf);
+0245         <span class="comment">%keyboard</span>
+0246     <span class="keyword">end</span>
+0247     
+0248 <span class="keyword">end</span>
+0249 
+0250 <span class="keyword">if</span>(display2)
+0251     zz = zeros(size(mask_reference));
+0252     zz(pos_warp) = Nx;
+0253     figure, imshow(zz);
+0254     title(<span class="string">'inliers in X'</span>);
+0255     <span class="comment">%imwrite(zz,['./tikzfolder/videoICRA/inX' sprintf('%04d',number) '.png']);</span>
+0256 <span class="keyword">end</span>
+0257 
+0258 Nn = Nx.*Ny.*Nz;
+0259 
+0260 <span class="comment">%valid = find(Nn &gt; 0);</span>
+0261 validPixels = zeros(size(mask_reference));
+0262 validPixels(pos_warp) = Nn;
+0263 <span class="comment">%keyboard</span>
+0264 <span class="keyword">if</span>(display2)    
+0265     figure, imshow(validPixels);
+0266     <span class="comment">%imwrite(validPixels,['./tikzfolder/videoICRA/goodPixels' sprintf('%04d',number) '.png']);</span>
+0267     <span class="comment">%imwrite(validPixels,'./tikzfolder/figure/GoodPixels.png');</span>
+0268 <span class="keyword">end</span>
+0269 
+0270 <span class="comment">% TODO -- comment this line -- for generating figures</span>
+0271 <span class="comment">%rot_obs = 0;</span>
+0272 
+0273 <span class="keyword">if</span>(~rot_obs)
+0274     flagsInitialization(1) = 1;
+0275     
+0276     <span class="keyword">if</span>(display2)
+0277         
+0278         [h,w] = size(mask_reference);
+0279         ncolorr = zeros(h,w,3);
+0280         <span class="keyword">for</span> k = 1 : 3
+0281             ncolorr(:,:,k) = abs(reshape(N_ref(k,:),h,w));
+0282         <span class="keyword">end</span>
+0283         figure, imshow(ncolorr);
+0284         imwrite(ncolorr,[namef <span class="string">'normal_ref_'</span> num2str(indexImage) <span class="string">'.png'</span>]);
+0285         <span class="comment">%saveas(gcf,[namef 'normal_ref_' num2str(indexImage) '.png'])</span>
+0286         close(gcf);
+0287         <span class="keyword">for</span> k = 1 : 3
+0288             ncolorr(:,:,k) = abs(reshape(N_cur(k,:),h,w));
+0289         <span class="keyword">end</span>
+0290         figure, imshow(ncolorr);
+0291         imwrite(ncolorr,[namef <span class="string">'normal_cur_'</span> num2str(indexImage) <span class="string">'.png'</span>]);
+0292         <span class="comment">%saveas(gcf,[namef 'normal_cur_' num2str(indexImage) '.png'])</span>
+0293         close(gcf);
+0294     <span class="keyword">end</span>    
+0295     
+0296 <span class="keyword">end</span>
+0297 
+0298 
+0299 <span class="comment">% zz = zeros(size(mask_reference));</span>
+0300 <span class="comment">% K&gt;&gt; zz(pos_warp(indyy)) = 1;</span>
+0301 <span class="comment">% K&gt;&gt; figure, imshow(zz)</span>
+0302 <span class="comment">% K&gt;&gt; data=residualsy; indyy = find(data&lt;=0.873 &amp; data&gt;=0.803);</span>
+0303 <span class="comment">% K&gt;&gt; zz = zeros(size(mask_reference));</span>
+0304 <span class="comment">% K&gt;&gt; zz(pos_warp(indyy)) = 1;</span>
+0305 <span class="comment">% K&gt;&gt; figure, imshow(zz)</span>
+0306 <span class="comment">% K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; K&gt;&gt; ncolor = zeros(h,w,3);</span>
+0307 <span class="comment">% K&gt;&gt;     for k = 1 : 3</span>
+0308 <span class="comment">%         ncolor(:,:,k) = abs(reshape(N_cur(k,:),h,w));</span>
+0309 <span class="comment">%     end</span>
+0310 <span class="comment">% K&gt;&gt;     figure, imshow(ncolor);</span>
+0311 <span class="comment">% K&gt;&gt; for k = 1 : 3</span>
+0312 <span class="comment">%         ncolor(:,:,k) = abs(reshape(N_ref(k,:),h,w));</span>
+0313 <span class="comment">% end</span>
+0314 <span class="comment">% K&gt;&gt;     figure, imshow(ncolor);</span>
+0315 <span class="comment">% K&gt;&gt; data=residualsy; indyy = find(data&lt;=0.873 &amp; data&gt;=0.803);</span></pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

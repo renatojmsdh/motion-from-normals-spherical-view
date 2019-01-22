@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of normals_centered</title>
+  <meta name="keywords" content="normals_centered">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">tools</a> &gt; normals_centered.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/tools&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>normals_centered
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function N = normals_centered(D,US,h,w) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: centered normal vector computation (uses four neighbours to compute
+  the normal). The derivate in this case is accurate to the second order
+  (one order more accurate than using the central - right - bottom
+  Inputs: - D (matrix h x w): depth image
+          - US (cell of matrices): the unit sphere coordinates such as X = US{1}, Y = US{2}, ...                   
+  Outputs: 
+          - N (matrix 3 x hw): the normals pointing to the origin
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/math/normvector.html" class="code" title="function normv = normvector(x,d)">normvector</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/example_initialization_normals.html" class="code" title="">example_initialization_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../../example_initialization_normals/src/init_rotation_normals.html" class="code" title="function  [angle, validPixels, per_inliers, N_ref, N_cur] = init_rotation_normals(D_ref,D_cur,US,mask_reference,mask_saliency,T_initial,sensor_param)">init_rotation_normals</a>	% Lagadic Team -- Inria Sophia Antipolis</li><li><a href="../../../example_initialization_normals/src/init_translation.html" class="code" title="function T = init_translation(D_ref,D_cur,sensor_config,mask_valid_pixels,T_initial,sensor_param)">init_translation</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: centered normal vector computation (uses four neighbours to compute</span>
+0006 <span class="comment">%  the normal). The derivate in this case is accurate to the second order</span>
+0007 <span class="comment">%  (one order more accurate than using the central - right - bottom</span>
+0008 <span class="comment">%  Inputs: - D (matrix h x w): depth image</span>
+0009 <span class="comment">%          - US (cell of matrices): the unit sphere coordinates such as X = US{1}, Y = US{2}, ...</span>
+0010 <span class="comment">%  Outputs:</span>
+0011 <span class="comment">%          - N (matrix 3 x hw): the normals pointing to the origin</span>
+0012 <span class="comment">%%</span>
+0013 <a name="_sub0" href="#_subfunctions" class="code">function N = normals_centered(D,US,h,w)</a>
+0014 
+0015 <span class="keyword">if</span>(nargin == 2)
+0016     <span class="comment">% build point cloud</span>
+0017     [h,w] = size(D);
+0018     P = [reshape(US(:,:,1).*D,1,h*w); reshape(US(:,:,2).*D,1,h*w); reshape(US(:,:,3).*D,1,h*w)];
+0019 <span class="keyword">else</span>
+0020     P = D;    
+0021 <span class="keyword">end</span>
+0022 
+0023 <span class="comment">% avoid borders</span>
+0024 [xmap, ymap] = meshgrid(2:w-1,2:h-1);
+0025 
+0026 <span class="comment">% find coordinates in memory. Matlab stores matrices with column wise order</span>
+0027 <span class="comment">% central pixel</span>
+0028 idx_c = ymap+(xmap-1)*h;
+0029 <span class="comment">% left</span>
+0030 idx_l = ymap+(xmap-2)*h;
+0031 <span class="comment">% right</span>
+0032 idx_r = ymap+(xmap)*h;
+0033 <span class="comment">% top</span>
+0034 idx_t = ymap-1+(xmap-1)*h;
+0035 <span class="comment">% bottom</span>
+0036 idx_b = ymap+1+(xmap-1)*h;
+0037 
+0038 Va = zeros(3,h*w);
+0039 Vb = zeros(3,h*w);
+0040 
+0041 <span class="comment">% compute 1st order numerical derivates -- tangent lines (plane)</span>
+0042 Va(:,idx_c) = single(P(:,idx_r)-P(:,idx_l))/2;
+0043 Vb(:,idx_c) = single(P(:,idx_b)-P(:,idx_t))/2;
+0044 
+0045 <span class="comment">% find orthogonal vector</span>
+0046 N = -cross(Va,Vb);
+0047 
+0048 N_norm = <a href="../../../example_initialization_normals/src/math/normvector.html" class="code" title="function normv = normvector(x,d)">normvector</a>(N,1);
+0049 N = N./repmat(N_norm,3,1);
+0050 
+0051 <span class="comment">% take out not valid pixels or rounding errors (e.g. coming from the derivates)</span>
+0052 pos = or(N_norm&lt;1e-6,isnan(N_norm));
+0053 N(:,pos) = 0;
+0054 
+0055 <span class="comment">%% NOTES:</span>
+0056 <span class="comment">% Output meshgrid (map of matrice indices): [h,w] = size(M) [xmap, ymap] =</span>
+0057 <span class="comment">% meshgrid(1:w,1:h) == M(ymap,xmap)</span>
+0058 <span class="comment">% ymap (column constant)</span>
+0059 <span class="comment">% xmap (row constant) access A(ymap,xmap)</span>
+0060</pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>

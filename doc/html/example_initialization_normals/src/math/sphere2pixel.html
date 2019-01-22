@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of sphere2pixel</title>
+  <meta name="keywords" content="sphere2pixel">
+  <meta name="description" content="% Lagadic Team -- Inria Sophia Antipolis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html v1.5 &copy; 2017 Renato Martins">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+</head>
+<body>
+<img src="../../../logo_inria.png" alt="" style="float: right; height:70px";>
+<a name="_top"></a>
+<div><a href="../../../index.html">Home</a> &gt;  <a href="../../index.html">example_initialization_normals</a> &gt; <a href="../index.html">src</a> &gt; <a href="index.html">math</a> &gt; sphere2pixel.m</div>
+
+<!--<table width="100%"><tr><td align="left"><a href="../../../index.html"><img alt="<" border="0" src="../../../left.png">&nbsp;Master index</a></td>
+<td align="right"><a href="index.html">Index for example_initialization_normals/src/math&nbsp;<img alt=">" border="0" src="../../../right.png"></a></td></tr></table>-->
+
+<h1>sphere2pixel
+</h1>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function pixel_map = sphere2pixel(Ps,param) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">% Lagadic Team -- Inria Sophia Antipolis
+  Renato Martins 2017
+  Email: renatojmsdh@gmail.com
+
+  Use: Convert from spherical coordinates (theta,phi) to pixel coordinates (u,v)
+  Inputs: - Ps (matrix mn x 2): spherical coordinates
+          - param (2 x 1): sensor projection parameters
+   
+  Outputs: 
+          - pixel_map (vector n x 1): pixel coordinates
+          - D (matrix m x n): depth image
+     
+%</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../example_initialization_normals/src/tools/p3D_pixel.html" class="code" title="function [pixel_map,D] = p3D_pixel(P3D,sensor_config)">p3D_pixel</a>	% Lagadic Team -- Inria Sophia Antipolis</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <span class="comment">%% Lagadic Team -- Inria Sophia Antipolis</span>
+0002 <span class="comment">%  Renato Martins 2017</span>
+0003 <span class="comment">%  Email: renatojmsdh@gmail.com</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">%  Use: Convert from spherical coordinates (theta,phi) to pixel coordinates (u,v)</span>
+0006 <span class="comment">%  Inputs: - Ps (matrix mn x 2): spherical coordinates</span>
+0007 <span class="comment">%          - param (2 x 1): sensor projection parameters</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">%  Outputs:</span>
+0010 <span class="comment">%          - pixel_map (vector n x 1): pixel coordinates</span>
+0011 <span class="comment">%          - D (matrix m x n): depth image</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">%%</span>
+0014 
+0015 <a name="_sub0" href="#_subfunctions" class="code">function pixel_map = sphere2pixel(Ps,param)</a>
+0016 
+0017 <span class="keyword">if</span>(size(Ps,1) == 2)
+0018     Ps = [Ps; ones(1,size(Ps,2))];
+0019 <span class="keyword">end</span>
+0020 
+0021 <span class="comment">% from spherical coordinates to pixel coordinates</span>
+0022 n = param(1)/2; minrow = param(2);
+0023 K = [n/pi 0 n ; 0 n/pi n/2 - (minrow-1)];
+0024 <span class="comment">% (theta,phi)</span>
+0025 pixel_map = K*Ps;
+0026 
+0027 <span class="comment">% matrix K put pixels starting from (0,0) but in Matlab indices begin at (1 1) -- so</span>
+0028 <span class="comment">% need to add 1s</span>
+0029 pixel_map = pixel_map + ones(size(pixel_map));</pre></div>
+<hr><address>Generated on Fri 01-Dec-2017 11:51:11 by <strong><a href="http://www-sop.inria.fr/members/Renato-Jose.Martins/index.html" title="DOC in HTML">Renato Martins, Inria Sophia Antipolis</a></strong> &copy; 2017</address>
+</body>
+</html>
