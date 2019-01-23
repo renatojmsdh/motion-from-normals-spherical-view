@@ -1,6 +1,6 @@
  # Code of "An Efficient Rotation and Translation Decoupled Initialization from Large Field of View Depth Images" 
  ## Renato Martins, Eduardo Fernandez-Moral, Patrick Rives
- ## Email: renatojmsdh@gmail.com
+ ## Email: renatojmsdh AT gmail.com
  ## INRIA Sophia Antipolis, 2018
   
   ## DOC:
